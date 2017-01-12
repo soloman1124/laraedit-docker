@@ -34,7 +34,7 @@ RUN apt-add-repository ppa:nginx/stable -y && \
 RUN echo "LC_ALL=en_US.UTF-8" >> /etc/default/locale  && \
     locale-gen en_US.UTF-8  && \
     ln -sf /usr/share/zoneinfo/UTC /etc/localtime
-    
+
 # setup bash
 COPY .bash_aliases /root
 
@@ -80,25 +80,17 @@ COPY fastcgi_params /etc/nginx/
 RUN phpenmod mcrypt && \
     mkdir -p /run/php/ && chown -Rf www-data.www-data /run/php
 
-# install sqlite 
+# install sqlite
 RUN apt-get install -y sqlite3 libsqlite3-dev
 
-# install mysql 
-RUN echo mysql-server mysql-server/root_password password $DB_PASS | debconf-set-selections;\
-    echo mysql-server mysql-server/root_password_again password $DB_PASS | debconf-set-selections;\
-    apt-get install -y mysql-server && \
-    echo "default_password_lifetime = 0" >> /etc/mysql/my.cnf && \
-    sed -i '/^bind-address/s/bind-address.*=.*/bind-address = 0.0.0.0/' /etc/mysql/my.cnf
-RUN /usr/sbin/mysqld & \
-    sleep 10s && \
-    echo "GRANT ALL ON *.* TO root@'0.0.0.0' IDENTIFIED BY 'secret' WITH GRANT OPTION; CREATE USER 'homestead'@'0.0.0.0' IDENTIFIED BY 'secret'; GRANT ALL ON *.* TO 'homestead'@'0.0.0.0' IDENTIFIED BY 'secret' WITH GRANT OPTION; GRANT ALL ON *.* TO 'homestead'@'%' IDENTIFIED BY 'secret' WITH GRANT OPTION; FLUSH PRIVILEGES; CREATE DATABASE homestead;" | mysql
-VOLUME ["/var/lib/mysql"]
+# install postgres
+RUN apt-get install -y postgresql
 
 # install composer
 RUN curl -sS https://getcomposer.org/installer | php && \
     mv composer.phar /usr/local/bin/composer && \
     printf "\nPATH=\"~/.composer/vendor/bin:\$PATH\"\n" | tee -a ~/.bashrc
-    
+
 # install prestissimo
 # RUN composer global require "hirak/prestissimo"
 
@@ -117,7 +109,7 @@ RUN /usr/bin/npm install -g gulp
 # install bower
 RUN /usr/bin/npm install -g bower
 
-# install redis 
+# install redis
 RUN apt-get install -y redis-server
 
 # install blackfire
